@@ -21,6 +21,8 @@ setup(
     entry_points={
         'console_scripts': [
             'test_script = tswr_awsim.test_script:main',
+            'lin_MPC_controller = tswr_awsim.lin_MPC_controller:main',
+            'iLQR_controller = tswr_awsim.iLQR_controller:main',
         ],
     },
 )
