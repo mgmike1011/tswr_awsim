@@ -71,9 +71,12 @@ class linMPCNode(Node):
             self.publish_control(self.theta, self.acceleration)
             self.get_logger().info(f'Controller output: theta: {self.theta}, acceleration: {self.acceleration}')
         else:
-            self.get_logger().info(f'Linearized MPC Controller wrong control')
+            self.get_logger().info(f'Linearized MPC Controller wrong control!')
 
     def control_timer_callback(self):
+        # 
+        # Calculate control
+        # 
         self.theta = 1.0
         self.acceleration = 1.0
         # TODO

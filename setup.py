@@ -23,6 +23,9 @@ setup(
             'test_script = tswr_awsim.test_script:main',
             'lin_MPC_controller = tswr_awsim.lin_MPC_controller:main',
             'iLQR_controller = tswr_awsim.iLQR_controller:main',
+            'stanley_controller = tswr_awsim.stanley_controller:main',
+            'pure_pursuit_controller = tswr_awsim.pure_pursuit_controller:main',
+            'reference_trajectory_generator = tswr_awsim.reference_trajectory:main',
         ],
     },
 )
