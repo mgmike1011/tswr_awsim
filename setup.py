@@ -10,6 +10,7 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+        ('share/' + package_name, ['resource/path.csv']),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -26,6 +27,7 @@ setup(
             'stanley_controller = tswr_awsim.stanley_controller:main',
             'pure_pursuit_controller = tswr_awsim.pure_pursuit_controller:main',
             'reference_trajectory_generator = tswr_awsim.reference_trajectory:main',
+            'path_publisher = tswr_awsim.path_pub:main',
         ],
     },
 )
