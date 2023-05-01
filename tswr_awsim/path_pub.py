@@ -1,6 +1,7 @@
 import rclpy
 import csv
 import os
+import numpy as np
 from rclpy.node import Node
 from launch_ros.substitutions import FindPackageShare
 
@@ -50,7 +51,15 @@ class PathPublisher(Node):
         self.i = 0
 
     def listener_callback(self, msg):
-        self.get_logger().info(msg.pose.position.x, msg.pose.position.y)
+
+        delta_x = float(self.path[self.i % self.path_points][0]) - msg.pose.position.x
+        delta_y = float(self.path[self.i % self.path_points][1]) - msg.pose.position.y
+        distance = np.sqrt(delta_x ** 2 + delta_y ** 2)
+
+        if distance <= 0.1:
+            self.i += 1
+
+        self.get_logger().info("Point nr: %f, distance: %f"%(self.i, distance))
 
     def timer_callback(self):
         path = Path()
@@ -69,7 +78,7 @@ class PathPublisher(Node):
 
         self.publisher_.publish(path)
 
-        self.get_logger().info('Publishing point no %f: %f'%(self.i % self.path_points, float(self.path[self.i % self.path_points][0])))
+        # self.get_logger().info('Publishing point no %f: %f'%(self.i % self.path_points, float(self.path[self.i % self.path_points][0])))
         # self.i += 10
 
 
