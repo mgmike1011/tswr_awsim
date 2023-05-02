@@ -4,6 +4,7 @@ from autoware_auto_control_msgs.msg import AckermannControlCommand
 from geometry_msgs.msg import PoseStamped 
 from nav_msgs.msg import Path
 import math
+from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy, QoSDurabilityPolicy
 
 def quat2eulers(q0:float, q1:float, q2:float, q3:float) -> tuple:
     """
@@ -56,7 +57,8 @@ class PurePursuitNode(Node):
         # 
         # Control publisher
         # 
-        self.control_publisher = self.create_publisher(AckermannControlCommand, '/control/command/control_cmd', 10)
+        qos_policy = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=QoSDurabilityPolicy.TRANSIENT_LOCAL, depth=10)
+        self.control_publisher = self.create_publisher(AckermannControlCommand, '/control/command/control_cmd', qos_policy)
         control_publisher_timer_period = 1/50  # seconds
         self.control_publisher_timer = self.create_timer(control_publisher_timer_period, self.control_publisher_timer_callback)
         control_timer = 0.1 # seconds
