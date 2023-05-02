@@ -56,7 +56,7 @@ class PathPublisher(Node):
         delta_y = float(self.path[self.i % self.path_points][1]) - msg.pose.position.y
         distance = np.sqrt(delta_x ** 2 + delta_y ** 2)
 
-        if distance <= 0.1:
+        if distance <= 0.2:
             self.i += 1
 
         self.get_logger().info("Point nr: %f, distance: %f"%(self.i, distance))
