@@ -30,11 +30,11 @@ def quat2eulers(q0:float, q1:float, q2:float, q3:float) -> tuple:
     )
     return (roll, pitch, yaw)
 
-class StanleyControllerNode(Node):
+class PurePursuitNode(Node):
 
     def __init__(self):
-        super().__init__('stanley_controller')
-        self.get_logger().info('Stanley Controller start!')
+        super().__init__('pure_pursuit_controller')
+        self.get_logger().info('Pure Pursuit Controller start!')
         # 
         # Current pose
         # 
@@ -105,7 +105,7 @@ class StanleyControllerNode(Node):
             self.publish_control(self.theta, self.acceleration)
             self.get_logger().info(f'Controller output: theta: {self.theta}, acceleration: {self.acceleration}')
         else:
-            self.get_logger().info(f'Stanley Controller wrong control!')
+            self.get_logger().info(f'Pure Pursuit Controller wrong control!')
 
     def control_timer_callback(self):
         # 
@@ -120,9 +120,9 @@ class StanleyControllerNode(Node):
     
 def main(args=None):
     rclpy.init(args=args)
-    StanleyController = StanleyControllerNode()
-    rclpy.spin(StanleyController)
-    StanleyController.destroy_node()
+    PurePursuitController = PurePursuitNode()
+    rclpy.spin(PurePursuitController)
+    PurePursuitController.destroy_node()
     rclpy.shutdown()
 
 

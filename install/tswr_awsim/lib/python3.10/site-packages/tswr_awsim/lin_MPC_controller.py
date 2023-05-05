@@ -5,7 +5,6 @@ from geometry_msgs.msg import PoseStamped
 from nav_msgs.msg import Path
 import math
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy, QoSDurabilityPolicy
-
 def quat2eulers(q0:float, q1:float, q2:float, q3:float) -> tuple:
     """
     Compute yaw-pitch-roll Euler angles from a quaternion.
@@ -30,11 +29,12 @@ def quat2eulers(q0:float, q1:float, q2:float, q3:float) -> tuple:
     )
     return (roll, pitch, yaw)
 
-class StanleyControllerNode(Node):
+
+class linMPCNode(Node):
 
     def __init__(self):
-        super().__init__('stanley_controller')
-        self.get_logger().info('Stanley Controller start!')
+        super().__init__('lin_MPC_controller')
+        self.get_logger().info('Linearized MPC Controller start!')
         # 
         # Current pose
         # 
@@ -59,7 +59,7 @@ class StanleyControllerNode(Node):
         # 
         qos_policy = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=QoSDurabilityPolicy.TRANSIENT_LOCAL, depth=10)
         self.control_publisher = self.create_publisher(AckermannControlCommand, '/control/command/control_cmd', qos_policy)
-        control_publisher_timer_period = 1/50  # seconds
+        control_publisher_timer_period = 1/30  # seconds
         self.control_publisher_timer = self.create_timer(control_publisher_timer_period, self.control_publisher_timer_callback)
         control_timer = 0.1 # seconds
         self.control_timer = self.create_timer(control_timer, self.control_timer_callback)
@@ -96,6 +96,7 @@ class StanleyControllerNode(Node):
 
     def publish_control(self, theta, accel):
         acc = AckermannControlCommand()
+        acc.longitudinal.speed = 1.0
         acc.lateral.steering_tire_angle = theta
         acc.longitudinal.acceleration = accel
         self.control_publisher.publish(acc)
@@ -105,7 +106,7 @@ class StanleyControllerNode(Node):
             self.publish_control(self.theta, self.acceleration)
             self.get_logger().info(f'Controller output: theta: {self.theta}, acceleration: {self.acceleration}')
         else:
-            self.get_logger().info(f'Stanley Controller wrong control!')
+            self.get_logger().info(f'Linearized MPC Controller wrong control!')
 
     def control_timer_callback(self):
         # 
@@ -113,16 +114,16 @@ class StanleyControllerNode(Node):
         # 
         if (self.ref_path is not None) and (self.curr_x is not None):
             # TO IMPLEMENT
-            self.theta = 1.0
+            self.theta = 0.5
             self.acceleration = 1.0
             # TODO
 
-    
+
 def main(args=None):
     rclpy.init(args=args)
-    StanleyController = StanleyControllerNode()
-    rclpy.spin(StanleyController)
-    StanleyController.destroy_node()
+    linMPCController = linMPCNode()
+    rclpy.spin(linMPCController)
+    linMPCController.destroy_node()
     rclpy.shutdown()
 
 

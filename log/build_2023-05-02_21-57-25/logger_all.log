@@ -1,0 +1,92 @@
+[0.385s] DEBUG:colcon:Command line arguments: ['/usr/bin/colcon', 'build', '--packages-select', 'tswr_awsim']
+[0.385s] DEBUG:colcon:Parsed command line arguments: Namespace(log_base=None, log_level=None, verb_name='build', build_base='build', install_base='install', merge_install=False, symlink_install=False, test_result_base=None, continue_on_error=False, executor='parallel', parallel_workers=8, event_handlers=None, ignore_user_meta=False, metas=['./colcon.meta'], base_paths=['.'], packages_ignore=None, packages_ignore_regex=None, paths=None, packages_up_to=None, packages_up_to_regex=None, packages_above=None, packages_above_and_dependencies=None, packages_above_depth=None, packages_select_by_dep=None, packages_skip_by_dep=None, packages_skip_up_to=None, packages_select_build_failed=False, packages_skip_build_finished=False, packages_select_test_failures=False, packages_skip_test_passed=False, packages_select=['tswr_awsim'], packages_skip=None, packages_select_regex=None, packages_skip_regex=None, packages_start=None, packages_end=None, allow_overriding=[], cmake_args=None, cmake_target=None, cmake_target_skip_unavailable=False, cmake_clean_cache=False, cmake_clean_first=False, cmake_force_configure=False, ament_cmake_args=None, catkin_cmake_args=None, catkin_skip_building_tests=False, mixin_files=None, mixin=None, verb_parser=<colcon_mixin.mixin.mixin_argument.MixinArgumentDecorator object at 0x7f1fcbe3e5f0>, verb_extension=<colcon_core.verb.build.BuildVerb object at 0x7f1fcc0be7a0>, main=<bound method BuildVerb.main of <colcon_core.verb.build.BuildVerb object at 0x7f1fcc0be7a0>>, mixin_verb=('build',))
+[0.409s] Level 1:colcon.colcon_core.package_discovery:discover_packages(colcon_meta) check parameters
+[0.409s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) check parameters
+[0.409s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) check parameters
+[0.409s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) check parameters
+[0.409s] Level 1:colcon.colcon_core.package_discovery:discover_packages(colcon_meta) discover
+[0.409s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) discover
+[0.409s] INFO:colcon.colcon_core.package_discovery:Crawling recursively for packages in '/home/agnieszka/autoware/src/tswr_awsim'
+[0.409s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['ignore', 'ignore_ament_install']
+[0.409s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ignore'
+[0.409s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ignore_ament_install'
+[0.409s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['colcon_pkg']
+[0.409s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'colcon_pkg'
+[0.409s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['colcon_meta']
+[0.409s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'colcon_meta'
+[0.409s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['ros']
+[0.409s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ros'
+[0.422s] DEBUG:colcon.colcon_core.package_identification:Package '.' with type 'ros.ament_python' and name 'tswr_awsim'
+[0.422s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) using defaults
+[0.422s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) discover
+[0.423s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) using defaults
+[0.423s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) discover
+[0.423s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) using defaults
+[0.450s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) check parameters
+[0.450s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) discover
+[0.470s] DEBUG:colcon.colcon_installed_package_information.package_discovery:Found 264 installed packages in /home/agnieszka/autoware/install
+[0.473s] DEBUG:colcon.colcon_installed_package_information.package_discovery:Found 333 installed packages in /opt/ros/humble
+[0.474s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) using defaults
+[0.559s] Level 5:colcon.colcon_core.verb:set package 'tswr_awsim' build argument 'cmake_args' from command line to 'None'
+[0.559s] Level 5:colcon.colcon_core.verb:set package 'tswr_awsim' build argument 'cmake_target' from command line to 'None'
+[0.559s] Level 5:colcon.colcon_core.verb:set package 'tswr_awsim' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.559s] Level 5:colcon.colcon_core.verb:set package 'tswr_awsim' build argument 'cmake_clean_cache' from command line to 'False'
+[0.559s] Level 5:colcon.colcon_core.verb:set package 'tswr_awsim' build argument 'cmake_clean_first' from command line to 'False'
+[0.559s] Level 5:colcon.colcon_core.verb:set package 'tswr_awsim' build argument 'cmake_force_configure' from command line to 'False'
+[0.559s] Level 5:colcon.colcon_core.verb:set package 'tswr_awsim' build argument 'ament_cmake_args' from command line to 'None'
+[0.559s] Level 5:colcon.colcon_core.verb:set package 'tswr_awsim' build argument 'catkin_cmake_args' from command line to 'None'
+[0.559s] Level 5:colcon.colcon_core.verb:set package 'tswr_awsim' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.559s] DEBUG:colcon.colcon_core.verb:Building package 'tswr_awsim' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/agnieszka/autoware/src/tswr_awsim/build/tswr_awsim', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/agnieszka/autoware/src/tswr_awsim/install/tswr_awsim', 'merge_install': False, 'path': '/home/agnieszka/autoware/src/tswr_awsim', 'symlink_install': False, 'test_result_base': None}
+[0.560s] INFO:colcon.colcon_core.executor:Executing jobs using 'parallel' executor
+[0.563s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:run_until_complete
+[0.564s] INFO:colcon.colcon_ros.task.ament_python.build:Building ROS package in '/home/agnieszka/autoware/src/tswr_awsim' with build type 'ament_python'
+[0.564s] Level 1:colcon.colcon_core.shell:create_environment_hook('tswr_awsim', 'ament_prefix_path')
+[0.569s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_core.shell.bat': Not used on non-Windows systems
+[0.570s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/agnieszka/autoware/src/tswr_awsim/install/tswr_awsim/share/tswr_awsim/hook/ament_prefix_path.ps1'
+[0.570s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/agnieszka/autoware/src/tswr_awsim/install/tswr_awsim/share/tswr_awsim/hook/ament_prefix_path.dsv'
+[0.571s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/agnieszka/autoware/src/tswr_awsim/install/tswr_awsim/share/tswr_awsim/hook/ament_prefix_path.sh'
+[0.572s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.572s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.952s] INFO:colcon.colcon_core.task.python.build:Building Python package in '/home/agnieszka/autoware/src/tswr_awsim'
+[0.954s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.954s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[1.449s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/agnieszka/autoware/src/tswr_awsim': PYTHONPATH=/home/agnieszka/autoware/src/tswr_awsim/build/tswr_awsim/prefix_override:/home/agnieszka/autoware/src/tswr_awsim/install/tswr_awsim/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py egg_info --egg-base build/tswr_awsim build --build-base /home/agnieszka/autoware/src/tswr_awsim/build/tswr_awsim/build install --record /home/agnieszka/autoware/src/tswr_awsim/build/tswr_awsim/install.log --single-version-externally-managed
+[1.846s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/agnieszka/autoware/src/tswr_awsim' returned '0': PYTHONPATH=/home/agnieszka/autoware/src/tswr_awsim/build/tswr_awsim/prefix_override:/home/agnieszka/autoware/src/tswr_awsim/install/tswr_awsim/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py egg_info --egg-base build/tswr_awsim build --build-base /home/agnieszka/autoware/src/tswr_awsim/build/tswr_awsim/build install --record /home/agnieszka/autoware/src/tswr_awsim/build/tswr_awsim/install.log --single-version-externally-managed
+[1.850s] Level 1:colcon.colcon_core.environment:checking '/home/agnieszka/autoware/src/tswr_awsim/install/tswr_awsim' for CMake module files
+[1.851s] Level 1:colcon.colcon_core.environment:checking '/home/agnieszka/autoware/src/tswr_awsim/install/tswr_awsim' for CMake config files
+[1.851s] Level 1:colcon.colcon_core.environment:checking '/home/agnieszka/autoware/src/tswr_awsim/install/tswr_awsim/lib'
+[1.852s] Level 1:colcon.colcon_core.environment:checking '/home/agnieszka/autoware/src/tswr_awsim/install/tswr_awsim/bin'
+[1.852s] Level 1:colcon.colcon_core.environment:checking '/home/agnieszka/autoware/src/tswr_awsim/install/tswr_awsim/lib/pkgconfig/tswr_awsim.pc'
+[1.852s] Level 1:colcon.colcon_core.environment:checking '/home/agnieszka/autoware/src/tswr_awsim/install/tswr_awsim/lib/python3.10/site-packages'
+[1.852s] Level 1:colcon.colcon_core.shell:create_environment_hook('tswr_awsim', 'pythonpath')
+[1.853s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/agnieszka/autoware/src/tswr_awsim/install/tswr_awsim/share/tswr_awsim/hook/pythonpath.ps1'
+[1.854s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/agnieszka/autoware/src/tswr_awsim/install/tswr_awsim/share/tswr_awsim/hook/pythonpath.dsv'
+[1.854s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/agnieszka/autoware/src/tswr_awsim/install/tswr_awsim/share/tswr_awsim/hook/pythonpath.sh'
+[1.854s] Level 1:colcon.colcon_core.environment:checking '/home/agnieszka/autoware/src/tswr_awsim/install/tswr_awsim/bin'
+[1.854s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(tswr_awsim)
+[1.856s] INFO:colcon.colcon_core.shell:Creating package script '/home/agnieszka/autoware/src/tswr_awsim/install/tswr_awsim/share/tswr_awsim/package.ps1'
+[1.856s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/agnieszka/autoware/src/tswr_awsim/install/tswr_awsim/share/tswr_awsim/package.dsv'
+[1.857s] INFO:colcon.colcon_core.shell:Creating package script '/home/agnieszka/autoware/src/tswr_awsim/install/tswr_awsim/share/tswr_awsim/package.sh'
+[1.857s] INFO:colcon.colcon_core.shell:Creating package script '/home/agnieszka/autoware/src/tswr_awsim/install/tswr_awsim/share/tswr_awsim/package.bash'
+[1.858s] INFO:colcon.colcon_core.shell:Creating package script '/home/agnieszka/autoware/src/tswr_awsim/install/tswr_awsim/share/tswr_awsim/package.zsh'
+[1.858s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/agnieszka/autoware/src/tswr_awsim/install/tswr_awsim/share/colcon-core/packages/tswr_awsim)
+[1.858s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:closing loop
+[1.859s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:loop closed
+[1.859s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:run_until_complete finished with '0'
+[1.859s] DEBUG:colcon.colcon_core.event_reactor:joining thread
+[1.869s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.notify_send': Could not find 'notify-send'
+[1.870s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.terminal_notifier': Not used on non-Darwin systems
+[1.870s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.win32': Not used on non-Windows systems
+[1.870s] INFO:colcon.colcon_notification.desktop_notification:Sending desktop notification using 'notify2'
+[1.873s] DEBUG:colcon.colcon_notification.desktop_notification.notify2:Failed to initialize notify2: org.freedesktop.DBus.Error.Spawn.ExecFailed: /usr/bin/dbus-launch terminated abnormally without any error message
+[1.874s] DEBUG:colcon.colcon_core.event_reactor:joined thread
+[1.876s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/agnieszka/autoware/src/tswr_awsim/install/local_setup.ps1'
+[1.877s] INFO:colcon.colcon_core.shell:Creating prefix util module '/home/agnieszka/autoware/src/tswr_awsim/install/_local_setup_util_ps1.py'
+[1.879s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/agnieszka/autoware/src/tswr_awsim/install/setup.ps1'
+[1.892s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/agnieszka/autoware/src/tswr_awsim/install/local_setup.sh'
+[1.892s] INFO:colcon.colcon_core.shell:Creating prefix util module '/home/agnieszka/autoware/src/tswr_awsim/install/_local_setup_util_sh.py'
+[1.893s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/agnieszka/autoware/src/tswr_awsim/install/setup.sh'
+[1.905s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/agnieszka/autoware/src/tswr_awsim/install/local_setup.bash'
+[1.905s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/agnieszka/autoware/src/tswr_awsim/install/setup.bash'
+[1.917s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/agnieszka/autoware/src/tswr_awsim/install/local_setup.zsh'
+[1.917s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/agnieszka/autoware/src/tswr_awsim/install/setup.zsh'
