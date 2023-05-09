@@ -5,6 +5,7 @@ from geometry_msgs.msg import PoseStamped
 from nav_msgs.msg import Path
 import math
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy, QoSDurabilityPolicy
+import numpy as np
 
 def quat2eulers(q0:float, q1:float, q2:float, q3:float) -> tuple:
     """
@@ -71,6 +72,10 @@ class PurePursuitNode(Node):
         # wysyłanie realizowane jest częściej niż działa faktyczny kontroler. Dane wysyłane są w funkcji
         # callbacka od control_publisher_timer, natomiast działanie algorytmu regulatora implementowane jest
         # w callbacku control_timer. Wymagała tego specyfika działania symulatora :|
+        # Dimensions from https://people.ciirc.cvut.cz/~klapajar/studenti/F3-DP-2020-Zahradka-David-thesis.pdf
+        self.wheelbase = 0.33  # meters, distance from rear wheels to front wheels
+        self.track = 0.23  # meters, distance between left and right wheels
+        self.lookahead_distance = 0.7  # meters
 
     def current_pose_listener_callback(self, msg:PoseStamped):
         # Position
@@ -82,6 +87,7 @@ class PurePursuitNode(Node):
         self.curr_qx = msg.pose.orientation.x
         self.curr_qy = msg.pose.orientation.y
         self.curr_qz = msg.pose.orientation.z
+
 
     def reference_trajectory_listener_callback(self, msg:Path):
         self.ref_path = []
@@ -96,6 +102,7 @@ class PurePursuitNode(Node):
 
     def publish_control(self, theta, accel):
         acc = AckermannControlCommand()
+        acc.longitudinal.speed = 1.0
         acc.lateral.steering_tire_angle = theta
         acc.longitudinal.acceleration = accel
         self.control_publisher.publish(acc)
@@ -108,17 +115,49 @@ class PurePursuitNode(Node):
             self.get_logger().info(f'Pure Pursuit Controller wrong control!')
 
     def control_timer_callback(self):
-        # 
-        # Calculate control
-        # 
-        if (self.ref_path is not None) and (self.curr_x is not None):
-            # TO IMPLEMENT
-            self.theta = 1.0
-            self.acceleration = 1.0
-            # TODO
 
-    
+        # Check if we have the current pose and reference trajectory
+        if None in [self.curr_x, self.curr_y, self.curr_qw, self.curr_qx, self.curr_qy, self.curr_qz, self.ref_path]:
+            return
+
+        # Get the current position and orientation of the vehicle
+        curr_pose = np.array([self.curr_x, self.curr_y])
+        curr_yaw = quat2eulers(self.curr_qw, self.curr_qx, self.curr_qy, self.curr_qz)[2]
+
+        # Find the nearest point on the reference trajectory
+        # ref_path = [x, y, qx, qy, qz, qw]
+        ref_points = np.array([[p[0], p[1]] for p in self.ref_path])
+        # Calculate distance between reference points and actual pose
+        distances = np.linalg.norm(ref_points - curr_pose, axis=1)
+        # Find index of nearest reference point to current position
+        nearest_idx = np.argmin(distances)
+        nearest_point = ref_points[nearest_idx]
+
+        # Find the lookahead point on the reference trajectory
+        for i in range(nearest_idx, len(self.ref_path)):
+            ref_point = np.array([self.ref_path[i][0], self.ref_path[i][1]])
+            if np.linalg.norm(ref_point - curr_pose) > self.lookahead_distance:
+                lookahead_point = ref_point
+                break
+        else:
+            lookahead_point = ref_points[-1]
+
+        # Calculate the steering angle using the pure pursuit algorithm
+        # Equations from https://dingyan89.medium.com/three-methods-of-vehicle-lateral-control-pure-pursuit-stanley-and-mpc-db8cc1d32081
+        dx = lookahead_point[0] - curr_pose[0]
+        dy = lookahead_point[1] - curr_pose[1]
+        alpha = np.arctan2(dy, dx) - curr_yaw
+        Lf = self.lookahead_distance
+        steering_angle = np.arctan2(2.0 * self.wheelbase * np.sin(alpha), Lf)
+        self.theta = steering_angle
+
+        # Calculate the acceleration as a constant value
+        self.acceleration = 0.05
+
+
+
 def main(args=None):
+
     rclpy.init(args=args)
     PurePursuitController = PurePursuitNode()
     rclpy.spin(PurePursuitController)
