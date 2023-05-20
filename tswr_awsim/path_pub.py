@@ -29,6 +29,7 @@ class PathPublisher(Node):
         
         # Initializing the titles and rows list
         self.path = []
+        self.direction = 0
         
         # Reading csv file
         self.path_points = 0
@@ -70,6 +71,12 @@ class PathPublisher(Node):
         vect_2 = np.array([delta_x, delta_y]) / np.linalg.norm([delta_x, delta_y])
 
         angle = np.rad2deg(np.arccos(np.clip(np.dot(vect_1, vect_2), -1.0, 1.0)))
+        angle2 = np.rad2deg(np.arccos(np.clip(np.dot([vect_1[1], -vect_1[0]], vect_2), -1.0, 1.0)))
+
+        if angle2 >= 90:
+            self.direction = 1
+        else:
+            self.direction = 0
 
         if distance_1 <= self.radius:
             self.i += 1
@@ -92,6 +99,7 @@ class PathPublisher(Node):
             row = self.path[(self.i + i) % self.path_points]
             points[i].pose.position.x = float(row[0])
             points[i].pose.position.y = float(row[1])
+            points[i].pose.position.z = float(self.direction)
             points[i].pose.orientation.x = float(row[2])
             points[i].pose.orientation.y = float(row[3])
             points[i].pose.orientation.z = float(row[4])
