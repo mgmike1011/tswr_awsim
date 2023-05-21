@@ -164,12 +164,19 @@ class StanleyControllerNode(Node):
         self.curr_qx = None
         self.curr_qy = None
         self.curr_qz = None
+        # Time
+        self.curr_time = None
+        # Last position and time
+        self.last_time = None
+        self.last_x = None
+        self.last_y = None
         # 
         # Reference trajectory
         # 
         self.reference_trajectory_subscription = self.create_subscription(Path, '/path_points', self.reference_trajectory_listener_callback, 10)
         # Position
         self.ref_path = None
+        self.ref_side = None
         # 
         # Control publisher
         # 
@@ -184,14 +191,14 @@ class StanleyControllerNode(Node):
         # Acceleration
         self.acceleration = None 
         # Controller parameter
-        self.K = 3.0
+        self.K = 0.5
         self.last_u = 0
-        # KOM: control_publisher publikuje sterowanie do biektu, ale w celu zapewnienia odpowiednio dużej liczby wysyłanych danych
-        # wysyłanie realizowane jest częściej niż działa faktyczny kontroler. Dane wysyłane są w funkcji
-        # callbacka od control_publisher_timer, natomiast działanie algorytmu regulatora implementowane jest
-        # w callbacku control_timer. Wymagała tego specyfika działania symulatora :|
 
     def current_pose_listener_callback(self, msg:PoseStamped):
+        # Previous
+        self.last_time = self.curr_time
+        self.last_x = self.curr_x
+        self.last_y = self.curr_y
         # Position
         self.curr_x = msg.pose.position.x
         self.curr_y = msg.pose.position.y
@@ -201,12 +208,15 @@ class StanleyControllerNode(Node):
         self.curr_qx = msg.pose.orientation.x
         self.curr_qy = msg.pose.orientation.y
         self.curr_qz = msg.pose.orientation.z
+        # Time
+        self.curr_time = msg.header.stamp.nanosec
 
     def reference_trajectory_listener_callback(self, msg:Path):
         self.ref_path = []
         for pose in msg.poses:
             x = pose.pose.position.x
             y = pose.pose.position.y
+            self.ref_side = pose.pose.position.z
             qx = pose.pose.orientation.x
             qy = pose.pose.orientation.y
             qz = pose.pose.orientation.z
@@ -223,54 +233,24 @@ class StanleyControllerNode(Node):
         if (self.theta is not None) and (self.acceleration is not None):
             self.publish_control(self.theta, self.acceleration)
             self.get_logger().info(f'Controller output: theta: {self.theta}, acceleration: {self.acceleration}')
-        # else:
-            # self.get_logger().info(f'Stanley Controller wrong control!')
+        else:
+            self.get_logger().info(f'Stanley Controller wrong control!')
 
     def control_timer_callback(self):
         # 
         # Calculate control
         # 
-        if (self.ref_path is not None) and (self.curr_x is not None):
-            # _, _, yaw_curr = quat2eulers(self.curr_qw, self.curr_qx, self.curr_qy, self.curr_qz)
-            # _, _, yaw_traj = quat2eulers(self.ref_path[0][5], self.ref_path[0][2], self.ref_path[0][3], self.ref_path[0][4])
-            # if hasattr(yaw_curr, "__len__"):
-            #     yaw_curr = 0
-            # if hasattr(yaw_traj, "__len__"):
-            #     yaw_traj = 0
-            Ra = quaternion_rotation_matrix([self.ref_path[0][5], self.ref_path[0][2], self.ref_path[0][3], self.ref_path[0][4]])# trajektoria referencyjna
+        if (self.ref_path is not None) and (self.curr_x is not None) and (self.last_time is not None):
+            Ra = quaternion_rotation_matrix([self.ref_path[0][5], self.ref_path[0][2], self.ref_path[0][3], self.ref_path[0][4]])
             Rb = quaternion_rotation_matrix([self.curr_qw, self.curr_qx, self.curr_qy, self.curr_qz])
             R = np.transpose(Ra)@Rb
-            # roll, pitch, yaw = rotation_angles(R, 'xyz')
             yaw = -np.arctan2(R[1,0],R[0,0])
-            print(f'yaw: {yaw}')
-            # yaw_traj = 2*np.arccos((self.ref_path[0][5]/np.sqrt(self.ref_path[0][5]**2 + self.ref_path[0][4]**2 + self.ref_path[0][3]**2 + self.ref_path[0][2]**2)))
-            # # if yaw_curr > 2*np:
-            # #     yaw_curr = yaw_curr/(2*np)
-            # yaw_curr = 2*np.arccos((self.curr_qw/np.sqrt(self.curr_qw**2 + self.curr_qx**2 + self.curr_qy**2 + self.curr_qz**2)))
-            # if math.isnan(yaw_curr):
-            #     yaw_curr = 0
-            # psi = yaw_traj - yaw_curr
-            # psi = yaw
-            # # e = 2*np.arccos(abs(self.curr_qw*self.ref_path[0][5] + self.curr_qx*self.ref_path[0][2] + self.curr_qy*self.ref_path[0][3]+ self.curr_qz*self.ref_path[0][4]))
-            # # if e < -6:
-            # #     e = e/(2*np.pi)
-            # e = yaw - self.last_u
-            delta2 = np.arctan(self.K*yaw)
-            # # self.get_logger().info(f'yaw_curr: {yaw_curr}, yaw_traj: {yaw_traj}, e: {e}') 
-            # # if (e + delta2) < -1:
-            # #     self.theta = -1.0
-            # # elif(e + delta2) > 1:
-            # #     self.theta = 1.0
-            # # else:
-            
-            # # if ( psi + delta2 ) < -1.5:
-            # #     self.theta = -1.5
-            # # elif( psi + delta2) > 1.5:
-            # #     self.theta = 1.5
-            # # else:
-            
+            e = np.sqrt((self.curr_x - self.ref_path[0][0])**2+(self.curr_y - self.ref_path[0][1])**2)
+            if self.ref_side == 0:
+                e = e*(-1)
+            delta2 = np.arctan((self.K * e)/(1.0))
+            self.get_logger().info(f'e: {e}, delta: {delta2}, yaw: {yaw}')
             self.theta = yaw + delta2
-            # self.last_u = self.theta
             self.acceleration = 0.3
 
     

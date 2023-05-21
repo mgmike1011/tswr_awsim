@@ -88,7 +88,7 @@ class PathPublisher(Node):
             self.error += distance_1
             self.mean_error = self.error / self.incorrect
 
-        self.get_logger().info("Loop nr: %f, Total points: %f, Correct: %f, Incorrect: %f, Mean error: %f"%(self.i // self.path_points, self.i, self.correct, self.incorrect, self.mean_error))
+        # self.get_logger().info("Loop nr: %f, Total points: %f, Correct: %f, Incorrect: %f, Mean error: %f"%(self.i // self.path_points, self.i, self.correct, self.incorrect, self.mean_error))
 
 
     def timer_callback(self):
@@ -109,7 +109,7 @@ class PathPublisher(Node):
 
         self.publisher_.publish(path)
 
-        # self.get_logger().info('Publishing point no %f: %f'%(self.i % self.path_points, float(self.path[self.i % self.path_points][0])))
+        self.get_logger().info('Publishing point no %f: %f'%(self.i % self.path_points, float(self.path[self.i % self.path_points][0])))
         # self.i += 10
 
 
