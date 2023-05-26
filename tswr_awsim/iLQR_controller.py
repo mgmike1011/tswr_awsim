@@ -120,6 +120,10 @@ class iLQRNode(Node):
         # Position
         self.ref_path = None
 
+        # Control variables
+        self.theta = None
+        self.acceleration = None
+
         # Control publisher
         qos_policy = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=QoSDurabilityPolicy.TRANSIENT_LOCAL,
                                 depth=10)
@@ -132,25 +136,20 @@ class iLQRNode(Node):
         self.control_timer = self.create_timer(control_timer, self.control_timer_callback)
 
         # iLQR Variables
-        self.n_x = 5
+        self.n_x = 4
         self.n_u = 2
 
-        self.N = 10
-        self.x0 = np.array([1, 0, 0, 1, 0])
+        self.N = 50
+        self.x0 = np.array([0, 0, 0, 0])
         self.u_trj = np.zeros((self.N - 1, self.n_u))
         self.x_trj = self.rollout(self.x0, self.u_trj)
 
-        self.r = 2.0
-        self.v_target = -1.0
         self.eps = 1e-6
 
         self.derivs = derivatives(self.discrete_dynamics, self.cost_stage, self.cost_final, self.n_x, self.n_u)
 
+        self.wheelbase = 0.33
         self.last_control_update_time = self.get_clock().now()
-
-        # Control output
-        self.theta = None
-        self.acceleration = None
 
     def current_pose_listener_callback(self, msg:PoseStamped):
         # Position
@@ -183,10 +182,9 @@ class iLQRNode(Node):
         self.control_publisher.publish(acc)
 
     def control_publisher_timer_callback(self):
-        self.get_logger().info(f'Controller output: theta: {self.theta}, acceleration: {self.acceleration}')
         if (self.theta is not None) and (self.acceleration is not None):
             self.publish_control(self.theta, self.acceleration)
-            self.get_logger().info(f'Controller output: theta: {self.theta}, acceleration: {self.acceleration}')
+            self.get_logger().info(f'Controller output: theta: {self.theta}, acceleration: {self.acceleration}, curr_yaw: {self.curr_yaw}')
 
     def control_timer_callback(self):
         # Calculate control
@@ -214,44 +212,47 @@ class iLQRNode(Node):
         self.last_control_update_time = self.get_clock().now()
 
         # Setup problem and call iLQR
-        x0 = np.array([-3.0, 1.0, -0.2, 0.0, 0.0])
-        # x0 = np.array([self.curr_x, self.curr_y, self.curr_yaw, self.current_speed + self.eps, self.theta])
-        N = 20
-        max_iter = 20
+        x0 = np.array([self.curr_x, self.curr_y, self.current_speed, self.curr_yaw])
+        N = 50
+        max_iter = 50
         regu_init = 100
         x_trj, u_trj, cost_trace, regu_trace, redu_ratio_trace, redu_trace = self.run_ilqr(
             x0, N, max_iter, regu_init
         )
 
         self.get_logger().info(f'u_optimal: : {u_trj[0]}')
+        self.get_logger().info(f'Curr: pos: {[self.curr_x, self.curr_y]}, pred: {x_trj[0]}')
+        self.get_logger().info(f'Next: pos: {[self.ref_path[0][0], self.ref_path[0][1]]}, pred: {x_trj[-1]}')
 
-        if self.theta == None:
-            self.theta = time_elapsed * np.clip(u_trj[0][1], -1.0, 1.0)
-        else:
-            self.theta += time_elapsed * np.clip(u_trj[0][1], -1.0, 1.0)
+        self.theta = np.clip(u_trj[0][1], -1.0, 1.0)
 
-        self.acceleration = np.clip(u_trj[0][0], -1.0, 0.2)
-
-    def car_continuous_dynamics(self, x, u):
-        # x = [x position, y position, heading, speed, steering angle]
-        # u = [acceleration, steering velocity]
-        m = sym if x.dtype == object else np  # Check type for autodiff
-        heading = x[2]
-        v = x[3]
-        steer = x[4]
-        x_d = np.array(
-            [v * m.cos(heading), v * m.sin(heading), v * m.tan(steer), u[0], u[1]]
-        )
-        return x_d
+        self.acceleration = np.clip(u_trj[0][0], -1.0, 1.0)
 
     def discrete_dynamics(self, x, u):
         dt = 0.1
-        # DONE TODO: Fill in the Euler integrator below and return the next state
-        # print(car_continuous_dynamics(x, u))
-        x_next = x + dt * self.car_continuous_dynamics(x, u)
-        # print(x)
-        # print()
-        # print(x_next)
+
+        current_speed = x[2]
+        curr_yaw = x[3]
+
+        if self.acceleration is not None and self.theta is not None:
+            A = np.array([[1, 0, dt * np.cos(curr_yaw), -dt * current_speed * np.sin(curr_yaw)],
+                          [0, 1, dt * np.sin(curr_yaw), dt * current_speed * np.cos(curr_yaw)],
+                          [0, 0, 1, 0],
+                          [0, 0, (dt * np.tan(self.theta)) / self.wheelbase, 1]])
+        else:
+            A = np.zeros((4, 4))
+
+        if self.theta is not None:
+            B = np.array([[0, 0],
+                          [0, 0],
+                          [dt, 0],
+                          [0, dt * current_speed / (self.wheelbase * np.cos(self.theta) ** 2)]])
+        else:
+            B = np.zeros((4, 2))
+
+        x_dot = A @ x + B @ u
+        x_next = x + (dt * x_dot)
+
         return x_next
 
     def rollout(self, x0, u_trj):
@@ -270,16 +271,28 @@ class iLQRNode(Node):
     
     def cost_stage(self, x, u):
         m = sym if x.dtype == object else np  # Check type for autodiff
-        c_circle = (m.sqrt(x[0] ** 2 + x[1] ** 2 + self.eps) - self.r) ** 2
-        c_speed = (x[3] - self.v_target) ** 2
-        c_control = (u[0] ** 2 + u[1] ** 2) * 0.1
-        return c_circle + c_speed + c_control
+
+        if self.ref_path != None:
+            c_traj_x = (x[0] - self.ref_path[0][0]) ** 2
+            c_traj_y = (x[1] - self.ref_path[0][1]) ** 2
+            c_vel = (x[2] - 27.0) ** 2
+            c_traj_yaw = (x[3] - self.ref_path[0][2]) ** 2
+            c_control = (u[0] ** 2 + u[1] ** 2) * 0.1
+            return c_traj_x + c_traj_y + c_vel + c_control
+        else:
+            return 0.0
 
     def cost_final(self, x):
         m = sym if x.dtype == object else np  # Check type for autodiff
-        c_circle = (m.sqrt(x[0] ** 2 + x[1] ** 2 + self.eps) - self.r) ** 2
-        c_speed = (x[3] - self.v_target) ** 2
-        return c_circle + c_speed
+
+        if self.ref_path != None:
+            c_traj_x = (x[0] - self.ref_path[0][0]) ** 2
+            c_traj_y = (x[1] - self.ref_path[0][1]) ** 2
+            c_vel = (x[2] - 27.0) ** 2
+            c_traj_yaw = (x[3] - self.ref_path[0][2]) ** 2
+            return c_traj_x + c_traj_y + c_vel
+        else:
+            return 0.0
 
     def cost_trj(self, x_trj, u_trj):
         total = 0.0
