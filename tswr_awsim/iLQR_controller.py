@@ -123,6 +123,7 @@ class iLQRNode(Node):
         # Control variables
         self.theta = None
         self.acceleration = None
+        self.time_elapsed = 0.0
 
         # Control publisher
         qos_policy = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, durability=QoSDurabilityPolicy.TRANSIENT_LOCAL,
@@ -196,16 +197,15 @@ class iLQRNode(Node):
         _, _, self.curr_yaw = quat2eulers(self.curr_qw, self.curr_qx, self.curr_qy, self.curr_qz)
 
         # Calculate current speed and angular velocity
-        time_elapsed = 0
         if len(self.ref_path) > 1:
             dx = self.ref_path[1][0] - self.ref_path[0][0]
             dy = self.ref_path[1][1] - self.ref_path[0][1]
             self.ref_yaw = np.arctan2(dy, dx)
             current_time = self.get_clock().now()
             duration = current_time - self.last_control_update_time
-            time_elapsed = duration.nanoseconds / 1e9
-            self.current_speed = np.sqrt(dx ** 2 + dy ** 2) / time_elapsed
-            self.angular_velocity = (self.ref_yaw - self.curr_yaw) / time_elapsed
+            self.time_elapsed = duration.nanoseconds / 1e9
+            self.current_speed = np.sqrt(dx ** 2 + dy ** 2) / self.time_elapsed
+            self.angular_velocity = (self.ref_yaw - self.curr_yaw) / self.time_elapsed
         else:
             self.current_speed = 0
             self.angular_velocity = 0
@@ -213,9 +213,10 @@ class iLQRNode(Node):
 
         # Setup problem and call iLQR
         x0 = np.array([self.curr_x, self.curr_y, self.current_speed, self.curr_yaw])
-        N = 50
+        # x0 = np.array([self.curr_x, self.curr_y, 0.0, 0.0])
+        N = 150
         max_iter = 50
-        regu_init = 100
+        regu_init = 1000
         x_trj, u_trj, cost_trace, regu_trace, redu_ratio_trace, redu_trace = self.run_ilqr(
             x0, N, max_iter, regu_init
         )
@@ -226,19 +227,26 @@ class iLQRNode(Node):
 
         self.theta = np.clip(u_trj[0][1], -1.0, 1.0)
 
-        self.acceleration = np.clip(u_trj[0][0], -1.0, 1.0)
+        self.acceleration = np.clip(u_trj[0][0], -1.0, 0.1)
 
     def discrete_dynamics(self, x, u):
-        dt = 0.1
+        dt = 0.01
+
+        m = sym if x.dtype == object else np  # Check type for autodiff
+
+        if m == np:
+            # Select max values
+            u[0] = m.clip(u[0], -0.1, 0.1)
+            u[1] = m.clip(u[1], -1.0, 1.0)
 
         current_speed = x[2]
         curr_yaw = x[3]
 
         if self.acceleration is not None and self.theta is not None:
-            A = np.array([[1, 0, dt * np.cos(curr_yaw), -dt * current_speed * np.sin(curr_yaw)],
-                          [0, 1, dt * np.sin(curr_yaw), dt * current_speed * np.cos(curr_yaw)],
+            A = np.array([[1, 0, dt * m.cos(curr_yaw), -dt * current_speed * m.sin(curr_yaw)],
+                          [0, 1, dt * m.sin(curr_yaw), dt * current_speed * m.cos(curr_yaw)],
                           [0, 0, 1, 0],
-                          [0, 0, (dt * np.tan(self.theta)) / self.wheelbase, 1]])
+                          [0, 0, (dt * m.tan(self.theta)) / self.wheelbase, 1]])
         else:
             A = np.zeros((4, 4))
 
@@ -246,7 +254,7 @@ class iLQRNode(Node):
             B = np.array([[0, 0],
                           [0, 0],
                           [dt, 0],
-                          [0, dt * current_speed / (self.wheelbase * np.cos(self.theta) ** 2)]])
+                          [0, dt * current_speed / (self.wheelbase * m.cos(self.theta) ** 2)]])
         else:
             B = np.zeros((4, 2))
 
@@ -273,12 +281,12 @@ class iLQRNode(Node):
         m = sym if x.dtype == object else np  # Check type for autodiff
 
         if self.ref_path != None:
-            c_traj_x = (x[0] - self.ref_path[0][0]) ** 2
-            c_traj_y = (x[1] - self.ref_path[0][1]) ** 2
-            c_vel = (x[2] - 27.0) ** 2
+            c_traj_x = (x[0] - self.ref_path[0][1]) ** 2
+            c_traj_y = (x[1] - self.ref_path[0][0]) ** 2
+            c_vel = (x[2] - 1) ** 2
             c_traj_yaw = (x[3] - self.ref_path[0][2]) ** 2
             c_control = (u[0] ** 2 + u[1] ** 2) * 0.1
-            return c_traj_x + c_traj_y + c_vel + c_control
+            return 1.5 * c_traj_x + 1.5 * c_traj_y + c_vel + c_traj_yaw + c_control
         else:
             return 0.0
 
@@ -288,9 +296,9 @@ class iLQRNode(Node):
         if self.ref_path != None:
             c_traj_x = (x[0] - self.ref_path[0][0]) ** 2
             c_traj_y = (x[1] - self.ref_path[0][1]) ** 2
-            c_vel = (x[2] - 27.0) ** 2
+            c_vel = (x[2] - 1) ** 2
             c_traj_yaw = (x[3] - self.ref_path[0][2]) ** 2
-            return c_traj_x + c_traj_y + c_vel
+            return 1.5 * c_traj_x + 1.5 * c_traj_y + c_traj_yaw + c_vel
         else:
             return 0.0
 
