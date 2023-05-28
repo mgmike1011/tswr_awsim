@@ -205,60 +205,51 @@ class iLQRNode(Node):
             duration = current_time - self.last_control_update_time
             self.time_elapsed = duration.nanoseconds / 1e9
             self.current_speed = np.sqrt(dx ** 2 + dy ** 2) / self.time_elapsed
-            self.angular_velocity = (self.ref_yaw - self.curr_yaw) / self.time_elapsed
         else:
             self.current_speed = 0
-            self.angular_velocity = 0
         self.last_control_update_time = self.get_clock().now()
 
         # Setup problem and call iLQR
         x0 = np.array([self.curr_x, self.curr_y, self.current_speed, self.curr_yaw])
         # x0 = np.array([self.curr_x, self.curr_y, 0.0, 0.0])
-        N = 150
+        N = 50
         max_iter = 50
-        regu_init = 1000
+        regu_init = 100
         x_trj, u_trj, cost_trace, regu_trace, redu_ratio_trace, redu_trace = self.run_ilqr(
             x0, N, max_iter, regu_init
         )
 
         self.get_logger().info(f'u_optimal: : {u_trj[0]}')
+        self.get_logger().info(f'x_0: : {x0}')
         self.get_logger().info(f'Curr: pos: {[self.curr_x, self.curr_y]}, pred: {x_trj[0]}')
-        self.get_logger().info(f'Next: pos: {[self.ref_path[0][0], self.ref_path[0][1]]}, pred: {x_trj[-1]}')
+        self.get_logger().info(f'Next: pos: {[self.ref_path[0][0], self.ref_path[0][1], self.ref_path[0][2]]}, pred: {x_trj[-1]}')
 
-        self.theta = np.clip(u_trj[0][1], -1.0, 1.0)
+        self.theta = np.clip(u_trj[7][1], -1.0, 1.0)
 
-        self.acceleration = np.clip(u_trj[0][0], -1.0, 0.1)
+        self.acceleration = np.clip(u_trj[7][0], -1.0, 0.1)
 
     def discrete_dynamics(self, x, u):
-        dt = 0.01
+        dt = 0.1
 
         m = sym if x.dtype == object else np  # Check type for autodiff
 
         if m == np:
             # Select max values
-            u[0] = m.clip(u[0], -0.1, 0.1)
+            u[0] = m.clip(u[0], 0.01, 0.2)
             u[1] = m.clip(u[1], -1.0, 1.0)
 
-        current_speed = x[2]
+        curr_speed = x[2]
         curr_yaw = x[3]
 
-        if self.acceleration is not None and self.theta is not None:
-            A = np.array([[1, 0, dt * m.cos(curr_yaw), -dt * current_speed * m.sin(curr_yaw)],
-                          [0, 1, dt * m.sin(curr_yaw), dt * current_speed * m.cos(curr_yaw)],
-                          [0, 0, 1, 0],
-                          [0, 0, (dt * m.tan(self.theta)) / self.wheelbase, 1]])
-        else:
-            A = np.zeros((4, 4))
+        acc = u[0]
+        theta = u[1]
+        wheelbase = 0.33
 
-        if self.theta is not None:
-            B = np.array([[0, 0],
-                          [0, 0],
-                          [dt, 0],
-                          [0, dt * current_speed / (self.wheelbase * m.cos(self.theta) ** 2)]])
-        else:
-            B = np.zeros((4, 2))
-
-        x_dot = A @ x + B @ u
+        x_dot = np.array([curr_speed * m.cos(curr_yaw), 
+                          curr_speed * m.sin(curr_yaw), 
+                          acc, 
+                          (curr_speed * m.tan(theta)) / wheelbase])
+        
         x_next = x + (dt * x_dot)
 
         return x_next
@@ -281,12 +272,12 @@ class iLQRNode(Node):
         m = sym if x.dtype == object else np  # Check type for autodiff
 
         if self.ref_path != None:
-            c_traj_x = (x[0] - self.ref_path[0][1]) ** 2
-            c_traj_y = (x[1] - self.ref_path[0][0]) ** 2
-            c_vel = (x[2] - 1) ** 2
+            c_traj_x = (x[0] - self.ref_path[0][0]) ** 2
+            c_traj_y = (x[1] - self.ref_path[0][1]) ** 2
+            c_vel = (x[2] - 0.2) ** 2
             c_traj_yaw = (x[3] - self.ref_path[0][2]) ** 2
             c_control = (u[0] ** 2 + u[1] ** 2) * 0.1
-            return 1.5 * c_traj_x + 1.5 * c_traj_y + c_vel + c_traj_yaw + c_control
+            return 1 * c_traj_x + 1 * c_traj_y + c_vel + c_traj_yaw + c_control
         else:
             return 0.0
 
@@ -296,9 +287,9 @@ class iLQRNode(Node):
         if self.ref_path != None:
             c_traj_x = (x[0] - self.ref_path[0][0]) ** 2
             c_traj_y = (x[1] - self.ref_path[0][1]) ** 2
-            c_vel = (x[2] - 1) ** 2
+            c_vel = (x[2] - 0.2) ** 2
             c_traj_yaw = (x[3] - self.ref_path[0][2]) ** 2
-            return 1.5 * c_traj_x + 1.5 * c_traj_y + c_traj_yaw + c_vel
+            return 1 * c_traj_x + 1 * c_traj_y + c_traj_yaw + c_vel
         else:
             return 0.0
 
