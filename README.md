@@ -30,6 +30,8 @@ ros2 run tswr_awsim iLQR_controller
 ```
 
 ## Linearized Model Predictive Control:
+Computing steering angle and acceleration (with some limitations) based on current pose and a reference trajectory. The controller uses linearized model of vehicle kinematics to predict future state. It solves a discrete-time algebraic Riccati equation (DARE) to obtain the optimal feedback gain matrix K, which is used to compute optimal control input. 
+
 Run all comands inside docker container
 
 Start AWSIM simulator
@@ -46,6 +48,8 @@ foo@bar:~/autoware$ ros2 launch tswr_awsim lin_MPC_launch.py
 ```
 
 ## Pure Pursuit:
+Computing steering angle using vehicle kinematics (with wheelbase 0.33 m), reference path and lookahaead distance 0.7 m. Equations correspond to a vehicle model with reference point in the center of the rear axle. 
+
 Run all comands inside docker containter 
 
 Start AWSIM simulator
