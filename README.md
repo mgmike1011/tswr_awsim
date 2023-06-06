@@ -45,7 +45,7 @@ Start Linear Model Predictive Control algorithm:
 foo@bar:~/autoware$ ros2 launch tswr_awsim lin_MPC_launch.py
 ```
 
-## Pure Pursuit 
+## Pure Pursuit:
 Run all comands inside docker containter 
 
 Start AWSIM simulator
