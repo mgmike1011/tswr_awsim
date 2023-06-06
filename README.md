@@ -42,7 +42,7 @@ foo@bar:~/autoware$ cd f1tenth_simulators/F1Tenth_v0.5
 foo@bar:~/autoware/f1tenth_simulators/F1Tenth_v0.5$ ./F1Tenth_v0.5.x86_64 
 ```
 
-Start Linear Model Predictive Control algorithm:
+Start Linearized Model Predictive Control algorithm:
 ```console
 foo@bar:~/autoware$ ros2 launch tswr_awsim lin_MPC_launch.py
 ```
