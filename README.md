@@ -28,3 +28,35 @@ Start iLQR planning algorithm
 ```python
 ros2 run tswr_awsim iLQR_controller
 ```
+
+## Linearized Model Predictive Control:
+Run all comands inside docker container
+
+Start AWSIM simulator
+```console
+foo@bar:~/autoware$ cd f1tenth_simulators/F1Tenth_v0.5
+```
+```console
+foo@bar:~/autoware/f1tenth_simulators/F1Tenth_v0.5$ ./F1Tenth_v0.5.x86_64 
+```
+
+Start Linear Model Predictive Control algorithm:
+```console
+foo@bar:~/autoware$ ros2 launch tswr_awsim lin_MPC_launch.py
+```
+
+## Pure Pursuit 
+Run all comands inside docker containter 
+
+Start AWSIM simulator
+```console
+foo@bar:~/autoware/f1tenth_simulators/F1Tenth_v0.5$ ./F1Tenth_v0.5.x86_64 
+```
+
+Start Pure Pursuit algorithm:
+```console
+foo@bar:~/autoware$ ros2 launch tswr_awsim pure_pursuit_launch.py 
+```
+
+
+
