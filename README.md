@@ -8,3 +8,23 @@
 6. . install/setup.bash
 7. Test działania: ros2 run tswr_awsim lin_MPC_controller 
 6. :)
+
+## iLQR:
+
+Run all comands inside docker
+
+Install required packages (Nie wiem jak to dodać żeby to rosdep zainstalował w sumie ewnwtualnie możemy to tak tu zostawić)
+
+```bash
+pip install drake
+```
+Start path publisher
+
+```python
+ros2 run tswr_awsim path_publisher
+```
+Start iLQR planning algorithm
+
+```python
+ros2 run tswr_awsim iLQR_controller
+```
